@@ -2,59 +2,19 @@ package main
 
 import (
 	"fmt"
+	"github.com/developer-profile/devmetr.git/internal/handlers"
 	"log"
 	"net/http"
-	"net/http/httputil"
-	"strings"
 )
 
-func hello(w http.ResponseWriter, r *http.Request) {
-	requestDump, err := httputil.DumpRequest(r, true)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	fmt.Println(string(requestDump))
-
-	switch r.Method {
-	case "GET":
-
-	case "POST":
-
-		//log.Println(r.RequestURI)
-		params := strings.Split(r.RequestURI, "/")
-		valueCount := true
-		valueName := ""
-		valueData := ""
-		for _, value := range params {
-
-			if value != "" && value != "update" && value != "GAUGE" {
-				if valueCount {
-					valueName = value
-					valueCount = false
-				} else {
-					valueData = value
-					valueCount = true
-				}
-
-			}
-			if valueData != "" {
-
-				log.Printf("%v: %v", valueName, valueData)
-				valueName = ""
-				valueData = ""
-			}
-		}
-
-	default:
-		_, err := fmt.Fprintf(w, "Sorry, only GET and POST methods are supported.")
-		if err != nil {
-			log.Printf("Error %v", err)
-		}
-	}
-}
-
 func main() {
-	http.HandleFunc("/update/", hello)
+
+	//http.Handle("/update/", middleware.Conveyor(http.HandlerFunc(handlers.LoginHandler1), handlers.Hello, handlers.StatusHandler, handlers.UpdateHandler, handlers.LoginHandler))
+	http.HandleFunc("/update/gauge/", handlers.GaugeUpdate)
+	http.HandleFunc("/update/counter/", handlers.CounterUpdate)
+	http.HandleFunc("/", handlers.SendNotFound)
+
+	//http.HandleFunc("/update/COUNTER/", hello)
 
 	fmt.Printf("Starting server for testing HTTP POST...\n")
 	if err := http.ListenAndServe("127.0.0.1:8080", nil); err != nil {
