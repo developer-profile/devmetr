@@ -20,14 +20,14 @@ func hello(w http.ResponseWriter, r *http.Request) {
 
 	case "POST":
 
-		log.Println(r.RequestURI)
+		//log.Println(r.RequestURI)
 		params := strings.Split(r.RequestURI, "/")
 		valueCount := true
 		valueName := ""
 		valueData := ""
 		for _, value := range params {
 
-			if value != "" && value != "UPDATE" && value != "GAUGE" {
+			if value != "" && value != "update" && value != "GAUGE" {
 				if valueCount {
 					valueName = value
 					valueCount = false
@@ -54,10 +54,10 @@ func hello(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/UPDATE/", hello)
+	http.HandleFunc("/update/", hello)
 
 	fmt.Printf("Starting server for testing HTTP POST...\n")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe("127.0.0.1:8080", nil); err != nil {
 		log.Fatal(err)
 	}
 }
