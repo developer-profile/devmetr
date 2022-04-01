@@ -20,11 +20,29 @@ func hello(w http.ResponseWriter, r *http.Request) {
 
 	case "POST":
 
-		//map[string]float64
 		log.Println(r.RequestURI)
 		params := strings.Split(r.RequestURI, "/")
+		valueCount := true
+		valueName := ""
+		valueData := ""
 		for _, value := range params {
-			log.Printf("value %v", value)
+
+			if value != "" && value != "UPDATE" && value != "GAUGE" {
+				if valueCount {
+					valueName = value
+					valueCount = false
+				} else {
+					valueData = value
+					valueCount = true
+				}
+
+			}
+			if valueData != "" {
+
+				log.Printf("%v: %v", valueName, valueData)
+				valueName = ""
+				valueData = ""
+			}
 		}
 
 	default:

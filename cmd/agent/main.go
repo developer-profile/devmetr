@@ -1,13 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"expvar"
 	"fmt"
 	"io"
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -54,6 +57,7 @@ func main() {
 func GetMetrics(duration time.Duration) {
 	// url to update
 	baseURL := "http://localhost:8080/UPDATE/"
+	baseURL = strings.ToUpper(baseURL)
 
 	s := 0  // steps counter
 	cs := 0 // send to server counter
@@ -123,9 +127,39 @@ func GetMetrics(duration time.Duration) {
 			cs += 1
 
 			for _, value := range urlString {
-				fmt.Printf("%v\n", value)
+				fmt.Printf("%v\n", strings.ToUpper(value))
 				//fmt.Sprintf("%v", value)
 				func() {
+					request, err := http.NewRequest(http.MethodPost, baseURL, bytes.NewBufferString(strings.ToUpper(value)))
+					if err != nil {
+						fmt.Println(err)
+						os.Exit(1)
+					}
+					request.Header.Add("Content-Type", "text/plain")
+					request.Header.Add("Content-Length", strconv.Itoa(len(strings.ToUpper(value))))
+					// отправляем запрос и получаем ответ
+					response, err := client.Do(request)
+					if err != nil {
+						fmt.Println(err)
+						os.Exit(1)
+					}
+					// печатаем код ответа
+					fmt.Println("Статус-код ", response.Status)
+					defer func(Body io.ReadCloser) {
+						err := Body.Close()
+						if err != nil {
+							log.Printf("Dropped error: %v", err)
+						}
+					}(response.Body)
+					// читаем поток из тела ответа
+					body, err1 := io.ReadAll(response.Body)
+					if err1 != nil {
+						fmt.Println(err)
+						os.Exit(1)
+					}
+					// и печатаем его
+					fmt.Println(string(body))
+
 					resp, err := client.Post(strings.ToUpper(value), "text/plain; encoding=UTF-8", strings.NewReader(""))
 					if err != nil {
 						log.Fatal(err)
@@ -136,15 +170,15 @@ func GetMetrics(duration time.Duration) {
 							fmt.Println(err)
 						}
 					}(resp.Body)
-					_, err1 := io.Copy(io.Discard, resp.Body)
-					if err1 != nil {
+					_, err2 := io.Copy(io.Discard, resp.Body)
+					if err2 != nil {
 						fmt.Println(err)
 					}
 
 				}()
 			}
 
-			fmt.Printf("Step #%d sending data to 127.0.0.1:8080/update: #%d \n", s, cs)
+			fmt.Printf("Step #%d sending data to HTTP://LOCALHOST:8080/UPDATE/: #%d \n", s, cs)
 			fmt.Printf("Step #%d collecting data with 2 seconds interval %d \n", s, i)
 
 		}
