@@ -1,9 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"strings"
 )
 
 type Gauge struct {
@@ -38,44 +40,41 @@ type Gauge struct {
 	NumGoroutine  int
 }
 
-func JSONHandler(w http.ResponseWriter, req *http.Request) {
-	// сначала устанавливаем заголовок Content-Type
-	// для передачи клиенту информации, кодированной в JSON
-	w.Header().Set("content-type", "application/json")
-	// устанавливаем статус-код 200
-	w.WriteHeader(http.StatusOK)
-	// собираем данные
-	subj := Gauge{}
-	// кодируем JSON
-	resp, err := json.Marshal(subj)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
+func hello(w http.ResponseWriter, r *http.Request) {
+	//if r.URL.Path != "/" {
+	//	http.Error(w, "404 not found.", http.StatusNotFound)
+	//	return
+	//}
+
+	switch r.Method {
+	case "GET":
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		// намеренно сделана ошибка в JSON
+		_, err := w.Write([]byte(`{"status":"ok"}`))
+		if err != nil {
+			log.Panicln(err)
+			os.Exit(1)
+		}
+	case "POST":
+
+		//map[string]float64
+		log.Println(r.RequestURI)
+		params := strings.Split(r.RequestURI, "/")
+		for _, value := range params {
+			log.Printf("value %v", value)
+		}
+
+	default:
+		fmt.Fprintf(w, "Sorry, only GET and POST methods are supported.")
 	}
-	// пишем тело ответа
-	w.Write(resp)
-	fmt.Println(string(resp))
 }
 
 func main() {
-	http.HandleFunc("/post", JSONHandler)
-	http.HandleFunc("/update", UpdateHandler)
-	http.ListenAndServe(":8080", nil)
-}
+	http.HandleFunc("/UPDATE/", hello)
 
-func UpdateHandler(w http.ResponseWriter, r *http.Request) {
-	// сначала устанавливаем заголовок Content-Type
-	// для передачи клиенту информации, кодированной в JSON
-	w.Header().Set("content-type", "text/plain")
-	// устанавливаем статус-код 200
-	resp, err := json.Marshal(r)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
+	fmt.Printf("Starting server for testing HTTP POST...\n")
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal(err)
 	}
-	// Читаем данные
-	//subj := Gauge{}
-	// пишем тело ответа
-	w.Write(resp)
-	fmt.Println(string(resp))
 }
