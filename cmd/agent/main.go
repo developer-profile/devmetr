@@ -56,8 +56,8 @@ func main() {
 
 func GetMetrics(duration time.Duration) {
 	// url to update
-	baseURL := "http://localhost:8080/UPDATE/"
-	baseURL = strings.ToUpper(baseURL)
+	baseURL := "http://127.0.0.1:8080/update/"
+	//baseURL = strings.ToUpper(baseURL)
 
 	s := 0  // steps counter
 	cs := 0 // send to server counter
@@ -160,26 +160,26 @@ func GetMetrics(duration time.Duration) {
 					// и печатаем его
 					fmt.Println(string(body))
 
-					resp, err := client.Post(strings.ToUpper(value), "text/plain; encoding=UTF-8", strings.NewReader(""))
-					if err != nil {
-						log.Fatal(err)
-					}
-					defer func(Body io.ReadCloser) {
-						err := Body.Close()
-						if err != nil {
-							fmt.Println(err)
-						}
-					}(resp.Body)
-					_, err2 := io.Copy(io.Discard, resp.Body)
-					if err2 != nil {
-						fmt.Println(err)
-					}
+					//resp, err := client.Post(strings.ToUpper(value), "text/plain; encoding=UTF-8", strings.NewReader(""))
+					//if err != nil {
+					//	log.Fatal(err)
+					//}
+					//defer func(Body io.ReadCloser) {
+					//	err := Body.Close()
+					//	if err != nil {
+					//		fmt.Println(err)
+					//	}
+					//}(resp.Body)
+					//_, err2 := io.Copy(io.Discard, resp.Body)
+					//if err2 != nil {
+					//	fmt.Println(err)
+					//}
 
 				}()
 			}
 
-			fmt.Printf("Step #%d sending data to HTTP://LOCALHOST:8080/UPDATE/: #%d \n", s, cs)
-			fmt.Printf("Step #%d collecting data with 2 seconds interval %d \n", s, i)
+			//fmt.Printf("Step #%d sending data to HTTP://127.0.0.1:8080/update/: #%d \n", s, cs)
+			//fmt.Printf("Step #%d collecting data with 2 seconds interval %d \n", s, i)
 
 		}
 		if s > 5 {
