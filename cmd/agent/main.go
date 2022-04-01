@@ -128,28 +128,8 @@ func GetMetrics(duration time.Duration) {
 				if err != nil {
 					log.Fatal(err)
 				}
-				//var res map[string]interface{}
-
-				// json.NewDecoder(resp.Body).Decode(&res)
 
 			}
-			//postString := fmt.Sprintf("%vGAUGE/SYS/%v", baseUrl, rtm.Sys)
-			//log.Println(postString)
-			//resp, err := http.Post(postString, "text/plain; utf-8", strings.NewReader(""))
-			//if err != nil {
-			//	log.Fatal(err)
-			//}
-			//
-			//client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-			//	if len(via) >= 2 {
-			//		return errors.New("Остановлено после двух Redirect")
-			//	}
-			//	return nil
-			//}
-			//
-			//var res map[string]interface{}
-			//
-			//json.NewDecoder(resp.Body).Decode(&res)
 
 			fmt.Printf("Step #%d sending data to 127.0.0.1:8080/update: #%d \n", s, cs)
 			fmt.Printf("Step #%d collecting data with 2 seconds interval %d \n", s, i)
