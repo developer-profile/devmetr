@@ -1,12 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"expvar"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -52,7 +56,8 @@ func main() {
 
 func GetMetrics(duration time.Duration) {
 	// url to update
-	baseUrl := "http://127.0.0.1:8080/UPDATE/"
+	baseURL := "http://localhost:8080/UPDATE/"
+	baseURL = strings.ToUpper(baseURL)
 
 	s := 0  // steps counter
 	cs := 0 // send to server counter
@@ -75,34 +80,34 @@ func GetMetrics(duration time.Duration) {
 
 		// agent metrics
 
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/ALLOC/%v", baseUrl, float64(rtm.Alloc)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/BuckHashSys/%v", baseUrl, float64(rtm.BuckHashSys)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/Frees/%v", baseUrl, float64(rtm.Frees)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/GCCPUFraction/%v", baseUrl, rtm.GCCPUFraction))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/GCSys/%v", baseUrl, float64(rtm.GCSys)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/HeapAlloc/%v", baseUrl, float64(rtm.HeapAlloc)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/HeapIdle/%v", baseUrl, float64(rtm.HeapIdle)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/HeapInuse/%v", baseUrl, float64(rtm.HeapInuse)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/HeapObjects/%v", baseUrl, float64(rtm.HeapObjects)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/HeapReleased/%v", baseUrl, float64(rtm.HeapReleased)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/HeapSys/%v", baseUrl, float64(rtm.HeapSys)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/LastGC/%v", baseUrl, float64(rtm.LastGC)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/Lookups/%v", baseUrl, float64(rtm.Lookups)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/MCacheInuse/%v", baseUrl, float64(rtm.MCacheInuse)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/MCacheSys/%v", baseUrl, float64(rtm.MCacheSys)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/MSpanInuse/%v", baseUrl, float64(rtm.MSpanInuse)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/MSpanSys/%v", baseUrl, float64(rtm.MSpanSys)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/Mallocs/%v", baseUrl, float64(rtm.Mallocs)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/NextGC/%v", baseUrl, float64(rtm.NextGC)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/NumForcedGC/%v", baseUrl, float64(rtm.NumForcedGC)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/NumGC/%v", baseUrl, float64(rtm.NumGC)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/OtherSys/%v", baseUrl, float64(rtm.OtherSys)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/PauseTotalNs/%v", baseUrl, float64(rtm.PauseTotalNs)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/RandomValue/%v", baseUrl, rand.ExpFloat64()))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/StackInuse/%v", baseUrl, float64(rtm.StackInuse)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/StackSys/%v", baseUrl, float64(rtm.StackSys)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/Sys/%v", baseUrl, float64(rtm.Sys)))
-		urlString = append(urlString, fmt.Sprintf("%vGAUGE/TotalAlloc/%v", baseUrl, float64(rtm.TotalAlloc)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/ALLOC/%v/", baseURL, float64(rtm.Alloc)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/BuckHashSys/%v/", baseURL, float64(rtm.BuckHashSys)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/Frees/%v/", baseURL, float64(rtm.Frees)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/GCCPUFraction/%v/", baseURL, rtm.GCCPUFraction))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/GCSys/%v/", baseURL, float64(rtm.GCSys)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/HeapAlloc/%v/", baseURL, float64(rtm.HeapAlloc)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/HeapIdle/%v/", baseURL, float64(rtm.HeapIdle)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/HeapInuse/%v/", baseURL, float64(rtm.HeapInuse)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/HeapObjects/%v/", baseURL, float64(rtm.HeapObjects)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/HeapReleased/%v/", baseURL, float64(rtm.HeapReleased)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/HeapSys/%v/", baseURL, float64(rtm.HeapSys)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/LastGC/%v/", baseURL, float64(rtm.LastGC)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/Lookups/%v/", baseURL, float64(rtm.Lookups)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/MCacheInuse/%v/", baseURL, float64(rtm.MCacheInuse)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/MCacheSys/%v/", baseURL, float64(rtm.MCacheSys)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/MSpanInuse/%v/", baseURL, float64(rtm.MSpanInuse)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/MSpanSys/%v/", baseURL, float64(rtm.MSpanSys)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/Mallocs/%v/", baseURL, float64(rtm.Mallocs)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/NextGC/%v/", baseURL, float64(rtm.NextGC)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/NumForcedGC/%v/", baseURL, float64(rtm.NumForcedGC)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/NumGC/%v/", baseURL, float64(rtm.NumGC)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/OtherSys/%v/", baseURL, float64(rtm.OtherSys)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/PauseTotalNs/%v/", baseURL, float64(rtm.PauseTotalNs)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/RandomValue/%v/", baseURL, rand.ExpFloat64()))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/StackInuse/%v/", baseURL, float64(rtm.StackInuse)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/StackSys/%v/", baseURL, float64(rtm.StackSys)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/Sys/%v/", baseURL, float64(rtm.Sys)))
+		urlString = append(urlString, fmt.Sprintf("%vGAUGE/TotalAlloc/%v/", baseURL, float64(rtm.TotalAlloc)))
 
 		// Transport config
 		tr := &http.Transport{
@@ -122,16 +127,58 @@ func GetMetrics(duration time.Duration) {
 			cs += 1
 
 			for _, value := range urlString {
-				fmt.Printf("%v\n", value)
+				fmt.Printf("%v\n", strings.ToUpper(value))
 				//fmt.Sprintf("%v", value)
-				_, err := client.Post(value, "text/plain; utf-8", strings.NewReader(""))
-				if err != nil {
-					log.Fatal(err)
-				}
+				func() {
+					request, err := http.NewRequest(http.MethodPost, baseURL, bytes.NewBufferString(strings.ToUpper(value)))
+					if err != nil {
+						fmt.Println(err)
+						os.Exit(1)
+					}
+					request.Header.Add("Content-Type", "text/plain")
+					request.Header.Add("Content-Length", strconv.Itoa(len(strings.ToUpper(value))))
+					// отправляем запрос и получаем ответ
+					response, err := client.Do(request)
+					if err != nil {
+						fmt.Println(err)
+						os.Exit(1)
+					}
+					// печатаем код ответа
+					fmt.Println("Статус-код ", response.Status)
+					defer func(Body io.ReadCloser) {
+						err := Body.Close()
+						if err != nil {
+							log.Printf("Dropped error: %v", err)
+						}
+					}(response.Body)
+					// читаем поток из тела ответа
+					body, err1 := io.ReadAll(response.Body)
+					if err1 != nil {
+						fmt.Println(err)
+						os.Exit(1)
+					}
+					// и печатаем его
+					fmt.Println(string(body))
 
+					resp, err := client.Post(strings.ToUpper(value), "text/plain; encoding=UTF-8", strings.NewReader(""))
+					if err != nil {
+						log.Fatal(err)
+					}
+					defer func(Body io.ReadCloser) {
+						err := Body.Close()
+						if err != nil {
+							fmt.Println(err)
+						}
+					}(resp.Body)
+					_, err2 := io.Copy(io.Discard, resp.Body)
+					if err2 != nil {
+						fmt.Println(err)
+					}
+
+				}()
 			}
 
-			fmt.Printf("Step #%d sending data to 127.0.0.1:8080/update: #%d \n", s, cs)
+			fmt.Printf("Step #%d sending data to HTTP://LOCALHOST:8080/UPDATE/: #%d \n", s, cs)
 			fmt.Printf("Step #%d collecting data with 2 seconds interval %d \n", s, i)
 
 		}
