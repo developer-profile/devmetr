@@ -68,7 +68,7 @@ func GetMetrics(duration time.Duration) {
 	var g Gauge
 	var urlString []string
 
-	var interval = duration * time.Second
+	var interval = duration * time.Millisecond
 	for {
 		<-time.After(interval)
 
