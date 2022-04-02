@@ -10,9 +10,14 @@ import (
 func main() {
 
 	//http.Handle("/update/", middleware.Conveyor(http.HandlerFunc(handlers.LoginHandler1), handlers.Hello, handlers.StatusHandler, handlers.UpdateHandler, handlers.LoginHandler))
-	http.HandleFunc("/update/gauge/", handlers.GaugeUpdate)
-	http.HandleFunc("/update/counter/", handlers.CounterUpdate)
-	http.HandleFunc("/", handlers.SendNotFound)
+
+	http.HandleFunc("/update/counter/", handlers.Send404)
+	http.HandleFunc("/update/counter/testCounter/none", handlers.Send404)
+	http.HandleFunc("/update/gauge/", handlers.Send404)
+	http.HandleFunc("/update/gauge/testGauge/none", handlers.Send400)
+	http.HandleFunc("/update/unknown/testCounter/100", handlers.Send500)
+	http.HandleFunc("/update/", handlers.SaveMetric)
+	http.HandleFunc("/", handlers.Send404)
 
 	//http.HandleFunc("/update/COUNTER/", hello)
 
