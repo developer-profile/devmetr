@@ -14,6 +14,7 @@ func SaveMetric(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Printf("Request Dump: %v", requestDump)
+		w.Write([]byte("err"))
 	}
 
 	//We Read the response body on the line below.
@@ -32,47 +33,37 @@ func SaveMetric(w http.ResponseWriter, r *http.Request) {
 	for key, element := range rLines {
 		fmt.Println("Key:", key, "=>", "Element:", element)
 	}
-	switch r.Method {
-	case "GET":
-		// сначала устанавливаем заголовок Content-Type
-		// для передачи клиенту информации, кодированной в JSON
-		//w.Header().Set("content-type", "application/json")
-		// устанавливаем статус-код 200
-		//w.WriteHeader(http.StatusNotAcceptable)
-
-		log.Println("GET method not acceptable")
-
-	case "POST":
-		params := strings.Split(r.RequestURI, "/")
-		//log.Printf("Params: \n %v \n", params)
-
-		switch params[1] {
-		case "gauge":
-			log.Println("Gauge")
-
-		case "counter":
-			log.Println("counter")
-
-		}
-
-	default:
-		_, err := fmt.Fprintf(w, "Sorry, only GET and POST methods are supported.")
-		if err != nil {
-			log.Printf("Error %v", err)
-		}
-
-	}
 
 }
 
 func Send500(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Sorry, something wrong. Try later", 500)
+	//We Read the response body on the line below.
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatalln(err)
+		log.Println(body)
+	}
+	http.Error(w, "Sorry, something wrong. Try later. #500", 500)
 }
 
 func Send400(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Sorry, something wrong. Try later", 400)
+	//We Read the response body on the line below.
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatalln(err)
+		log.Println(body)
+	}
+	http.Error(w, "Sorry, something wrong. Try later. #400", 400)
 }
 
 func Send404(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "Sorry, something wrong. Try later", 404)
+	//We Read the response body on the line below.
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatalln(err)
+		log.Println(body)
+
+	}
+
+	http.Error(w, "Sorry, something wrong. Try later. #404", 404)
 }
