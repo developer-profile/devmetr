@@ -33,7 +33,7 @@ func TestSaveMetric(t *testing.T) {
 	for _, tt := range tests {
 		// запускаем каждый тест
 		t.Run(tt.name, func(t *testing.T) {
-			request := httptest.NewRequest(http.MethodPost, "/UPDATE/GAUGE/ALLOC/1.024456E+06/", nil)
+			request := httptest.NewRequest(http.MethodPost, "HTTP://127.0.0.1:8080/UPDATE/GAUGE/ALLOC/1.024456E+06/", nil)
 
 			// создаём новый Recorder
 			w := httptest.NewRecorder()
