@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"log"
 	"reflect"
 	"runtime"
 	"sync"
@@ -58,7 +59,7 @@ func (a *Agent) updateMetric() {
 	rms := &runtime.MemStats{}
 	runtime.ReadMemStats(rms)
 	r := reflect.Indirect(reflect.ValueOf(rms))
-
+	log.Println("updateMetric() start")
 	for _, m := range a.trackingMetricsStore.GetRuntimeMetric() {
 		v, _ := m.UpdateFunc(r, m)
 		a.metricStore.AddMetricValue(m.TypeM, m.Name, v)
@@ -69,13 +70,16 @@ func (a *Agent) updateMetric() {
 		value, _ := m.UpdateFunc(v)
 		a.metricStore.AddMetricValue(m.TypeM, m.Name, value)
 	}
+	log.Println("updateMetric() finish")
 }
 
 func (a *Agent) sendMetric(ch chan<- models.Metric) {
+	log.Println("sendMetric() start")
 	metrics, _ := a.metricStore.GetAll()
 	for _, m := range metrics {
 		ch <- m
 	}
+	log.Println("sendMetric() finish")
 }
 
 func (a *Agent) startSend(ctx context.Context, wg *sync.WaitGroup, ch <-chan models.Metric) {
@@ -86,9 +90,11 @@ LOOP:
 		case <-ctx.Done():
 			break LOOP
 		case v := <-ch:
+			log.Println("StartSend() start")
 			a.transport.SendMetric(v)
 		}
 	}
+	log.Println("StartSend() finish")
 }
 
 func (a *Agent) Start(ctx context.Context, cF context.CancelFunc, wg *sync.WaitGroup) {
@@ -99,12 +105,13 @@ func (a *Agent) Start(ctx context.Context, cF context.CancelFunc, wg *sync.WaitG
 
 	tickerPollInter := time.NewTicker(time.Duration(a.pollInterval) * time.Second)
 	tickerRepInter := time.NewTicker(time.Duration(a.reportInterval) * time.Second)
-
+	cycleCounter := 1
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 	LOOP:
 		for {
+
 			select {
 			case <-ctx.Done():
 				close(mCh)
@@ -113,6 +120,15 @@ func (a *Agent) Start(ctx context.Context, cF context.CancelFunc, wg *sync.WaitG
 				a.updateMetric()
 			case <-tickerRepInter.C:
 				a.sendMetric(mCh)
+				cycleCounter += 1
+				if cycleCounter > 2 {
+					log.Println(cycleCounter)
+					//syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+					//ctx.Done()
+					//close(mCh)
+					break LOOP
+
+				}
 			}
 		}
 	}()

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -20,7 +21,7 @@ func main() {
 	listMetricForTrack := trackingMetricStore.New()
 	listMetricForTrack.Add(delaultMetrics.DefaultRuntimeMetric)
 	listMetricForTrack.Add(delaultMetrics.DefaultCustomMetric)
-
+	log.Println("Server started properly.")
 	a := agent.New(
 		2,
 		10,
@@ -34,20 +35,22 @@ func main() {
 
 	a.Start(ctx, cancel, wg)
 
-	signalChanel := make(chan os.Signal, 1)
-	signal.Notify(signalChanel,
+	SignalChanel := make(chan os.Signal, 1)
+	signal.Notify(SignalChanel,
 		syscall.SIGINT,
 		syscall.SIGTERM,
 		syscall.SIGQUIT)
 
 LOOP:
 	for {
-		s := <-signalChanel
+		s := <-SignalChanel
 		switch s {
 		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
+			log.Println("Server canceled properly.")
 			cancel()
 			break LOOP
 		}
 	}
 	wg.Wait()
+	log.Println("wg.Wait() finish")
 }
