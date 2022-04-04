@@ -66,7 +66,12 @@ func TestSetMetric(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			url := fmt.Sprintf("%s%s", srv.URL, tt.url)
 			res, err := http.Post(url, "text/plain", nil)
-
+			if err != nil {
+				//Handle the error here.
+				return
+			}
+			defer res.Body.Close()
+			//Read and parse response body here
 			assert.Nil(t, err, "Get error should be nil")
 			assert.Equal(t, tt.statusCode, res.StatusCode, "Check status code")
 		})
@@ -89,8 +94,8 @@ func TestGetMetric(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		postUrl    string
-		getUrl     string
+		postURL    string
+		getURL     string
 		value      string
 		statusCode int
 	}{
@@ -103,12 +108,18 @@ func TestGetMetric(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.statusCode == http.StatusOK {
-				url := fmt.Sprintf("%s%s%s", srv.URL, tt.postUrl, tt.value)
+				url := fmt.Sprintf("%s%s%s", srv.URL, tt.postURL, tt.value)
 				res, err := http.Post(url, "text/plain", nil)
 				require.Nil(t, err, "Get error should be nil")
 				require.Equal(t, tt.statusCode, res.StatusCode, "Check status code")
 			}
-			res, err := http.Get(fmt.Sprintf("%s%s", srv.URL, tt.getUrl))
+			res, err := http.Get(fmt.Sprintf("%s%s", srv.URL, tt.getURL))
+			if err != nil {
+				//Handle the error here.
+				return
+			}
+			defer res.Body.Close()
+			//Read and parse response body here
 
 			assert.Nil(t, err, "Get error should be nil")
 			assert.Equal(t, tt.statusCode, res.StatusCode, "Check status code")
