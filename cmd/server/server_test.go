@@ -110,6 +110,11 @@ func TestGetMetric(t *testing.T) {
 			if tt.statusCode == http.StatusOK {
 				url := fmt.Sprintf("%s%s%s", srv.URL, tt.postURL, tt.value)
 				res, err := http.Post(url, "text/plain", nil)
+				if err != nil {
+					//Handle the error here.
+					return
+				}
+				defer res.Body.Close()
 				require.Nil(t, err, "Get error should be nil")
 				require.Equal(t, tt.statusCode, res.StatusCode, "Check status code")
 			}
