@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"runtime"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/developer-profile/devmetr/internal/models"
@@ -123,7 +124,10 @@ func (a *Agent) Start(ctx context.Context, cF context.CancelFunc, wg *sync.WaitG
 				cycleCounter += 1
 				if cycleCounter > 2 {
 					log.Println(cycleCounter)
-					//syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+					err := syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+					if err != nil {
+						return
+					}
 					//ctx.Done()
 					//close(mCh)
 					break LOOP
