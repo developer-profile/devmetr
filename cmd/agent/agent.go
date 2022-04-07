@@ -40,17 +40,3 @@ func main() {
 		syscall.SIGINT,
 		syscall.SIGTERM,
 		syscall.SIGQUIT)
-
-LOOP:
-	for {
-		s := <-SignalChanel
-		switch s {
-		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
-			log.Println("Server canceled properly.")
-			cancel()
-			break LOOP
-		}
-	}
-	wg.Wait()
-	log.Println("wg.Wait() finish")
-}
