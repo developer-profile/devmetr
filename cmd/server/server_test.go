@@ -31,7 +31,7 @@ func TestRootPath(t *testing.T) {
 	res, err := http.Get(fmt.Sprintf("%s/", srv.URL))
 
 	assert.Nil(t, err, "Get error should be nil")
-	assert.Equal(t, http.StatusOK, res.StatusCode, "Status code should be 200")
+	assert.Equal(t, http.StatusOK, res.StatusCode, "Status code should by 200")
 
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
