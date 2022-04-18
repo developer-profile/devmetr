@@ -146,8 +146,8 @@ github.com/mattn/go-sqlite3 v1.14.11 h1:gt+cp9c0XGqe9S/wAHTL3n/7MqY+siPWgWJgqdsF
 github.com/mattn/go-sqlite3 v1.14.11/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
 github.com/mitchellh/mapstructure v1.4.3 h1:OVowDSCllw/YjdLkam3/sm7wEtOy59d8ndGgCcyj8cs=
 github.com/mitchellh/mapstructure v1.4.3/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
-github.com/nikolaevs92/Practicum v0.0.0-20220406115731-adeeaa39e2d0 h1:KUz2H1InOJbgtULtK7sgUP4yGbAh+4wmhqbRf72fPRQ=
-github.com/nikolaevs92/Practicum v0.0.0-20220406115731-adeeaa39e2d0/go.mod h1:5m8VKtcExymQNbuyxfDGkQ2l/Y7bS2uBG+id3xbEZ4c=
+github.com/developer-profile/devmetr v0.0.0-20220406115731-adeeaa39e2d0 h1:KUz2H1InOJbgtULtK7sgUP4yGbAh+4wmhqbRf72fPRQ=
+github.com/developer-profile/devmetr v0.0.0-20220406115731-adeeaa39e2d0/go.mod h1:5m8VKtcExymQNbuyxfDGkQ2l/Y7bS2uBG+id3xbEZ4c=
 github.com/pelletier/go-toml v1.9.4 h1:tjENF6MfZAg8e4ZmZTeWaWiT2vXtsoO6+iuOjFhECwM=
 github.com/pelletier/go-toml v1.9.4/go.mod h1:u1nR/EPcESfeI/szUZKdtJ0xRNbUoANCkoOuaOx1Y+c=
 github.com/pelletier/go-toml/v2 v2.0.0-beta.8 h1:dy81yyLYJDwMTifq24Oi/IslOslRrDSb3jwDggjz3Z0=

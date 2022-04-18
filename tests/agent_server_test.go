@@ -1,8 +1,8 @@
 package main_test
 
 import (
-	// "context"
 	"testing"
+	// "context"
 	// "time"
 	// "github.com/developer-profile/devmetr/internal/agent"
 	// "github.com/developer-profile/devmetr/internal/config"
@@ -18,6 +18,8 @@ func TestCollector(t *testing.T) {
 	// 	"NextGC", "NumForcedGC", "NumGC", "OtherSys", "PauseTotalNs", "StackInuse", "StackSys", "Sys", "RandomValue",
 	// }
 	// conf := config.LoadConfig()
+	// conf.Server.DBType = "sqlite3"
+	// conf.Server.DataBaseDSN = "./.data"
 
 	// httpServer := server.New(*conf.Server)
 	// serverCtx, serverCancel := context.WithCancel(context.Background())
