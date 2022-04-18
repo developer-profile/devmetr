@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/nikolaevs92/Practicum/internal/datastorage"
-	"github.com/nikolaevs92/Practicum/internal/server"
+	"github.com/developer-profile/devmetr/internal/datastorage"
+	"github.com/developer-profile/devmetr/internal/server"
 )
 
 func NewServerConfig(v *viper.Viper) *server.Config {

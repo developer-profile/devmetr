@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/nikolaevs92/Practicum/internal/datastorage"
+	"github.com/developer-profile/devmetr/internal/datastorage"
 )
 
 type Config struct {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/nikolaevs92/Practicum/internal/agent"
+	"github.com/developer-profile/devmetr/internal/agent"
 )
 
 func NewAgentConfig(v *viper.Viper) *agent.Config {

@@ -4,9 +4,9 @@ import (
 	// "context"
 	"testing"
 	// "time"
-	// "github.com/nikolaevs92/Practicum/internal/agent"
-	// "github.com/nikolaevs92/Practicum/internal/config"
-	// "github.com/nikolaevs92/Practicum/internal/server"
+	// "github.com/developer-profile/devmetr/internal/agent"
+	// "github.com/developer-profile/devmetr/internal/config"
+	// "github.com/developer-profile/devmetr/internal/server"
 	// "github.com/stretchr/testify/assert"
 )
 

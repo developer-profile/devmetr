@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/nikolaevs92/Practicum/internal/config"
-	"github.com/nikolaevs92/Practicum/internal/datastorage"
-	"github.com/nikolaevs92/Practicum/internal/server"
+	"github.com/developer-profile/devmetr/internal/config"
+	"github.com/developer-profile/devmetr/internal/datastorage"
+	"github.com/developer-profile/devmetr/internal/server"
 )
 
 func TestStatHandler(t *testing.T) {
