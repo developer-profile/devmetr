@@ -1,3 +1,39 @@
 package main
 
-func main() {}
+import (
+	"context"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/developer-profile/devmetr/internal/agent"
+	"github.com/developer-profile/devmetr/internal/config"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+)
+
+func main() {
+	cancelChan := make(chan os.Signal, 1)
+	signal.Notify(cancelChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		<-cancelChan
+		cancel()
+	}()
+
+	address := pflag.StringP("address", "a", config.DefaultServer, "")
+	pollInterval := pflag.DurationP("pool-inreval", "p", config.DefaultPollInterval, "")
+	reportInterval := pflag.DurationP("report-interval", "r", config.DefaultReportInterval, "")
+	pflag.Parse()
+
+	v := viper.New()
+	v.AllowEmptyEnv(true)
+	v.AutomaticEnv()
+
+	conf := config.NewAgentConfigWithDefaults(v, *address, *pollInterval, *reportInterval)
+	collector := agent.New(*conf)
+	collector.Run(ctx)
+
+	log.Println("Program end")
+}
