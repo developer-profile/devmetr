@@ -14,7 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/nikolaevs92/Practicum/internal/datastorage"
+	"github.com/developer-profile/devmetr/internal/datastorage"
 )
 
 type DataBase interface {

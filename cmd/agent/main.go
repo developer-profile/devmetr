@@ -7,8 +7,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/nikolaevs92/Practicum/internal/agent"
-	"github.com/nikolaevs92/Practicum/internal/config"
+	"github.com/developer-profile/devmetr/internal/agent"
+	"github.com/developer-profile/devmetr/internal/config"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )

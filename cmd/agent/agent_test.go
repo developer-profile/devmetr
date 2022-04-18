@@ -5,7 +5,7 @@ import (
 	// "testing"
 	// "time"
 
-	// "github.com/nikolaevs92/Practicum/internal/agent"
+	// "github.com/developer-profile/devmetr/internal/agent"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
