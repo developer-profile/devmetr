@@ -109,6 +109,7 @@ func (storage *DataStorage) RestoreData() error {
 	default:
 		return err
 	}
+
 	log.Println("Restore data: succesed")
 	return nil
 }
@@ -148,7 +149,13 @@ func New(cfg StorageConfig) *DataStorage {
 
 func (storage *DataStorage) RunReciver(end context.Context) {
 	log.Println("Start Reciver")
-	storeTimer := time.NewTicker(storage.cfg.StoreInterval)
+	var storeTimer *time.Ticker
+	if storage.cfg.StoreInterval > 0 {
+		storeTimer = time.NewTicker(storage.cfg.StoreInterval)
+	} else {
+		storeTimer = time.NewTicker(1)
+		storeTimer.Stop()
+	}
 
 	for {
 		select {
@@ -233,6 +240,7 @@ func (storage *DataStorage) GetJSONValue(jsonDump []byte) ([]byte, error) {
 			return jsonDump, err
 		}
 		metrics.Value = value
+		metrics.Delta = 0
 
 	case CounterTypeName:
 		value, err := storage.GetCounterValue(metrics.ID)
@@ -240,10 +248,11 @@ func (storage *DataStorage) GetJSONValue(jsonDump []byte) ([]byte, error) {
 			return jsonDump, err
 		}
 		metrics.Delta = value
+		metrics.Value = 0
 	default:
 		return jsonDump, errors.New("Wrong MType: " + metrics.MType)
 	}
-	res, err := json.Marshal(metrics)
+	res, err := metrics.MarshalJSON()
 	if err != nil {
 		return jsonDump, errors.New("error on encoding json")
 	}
