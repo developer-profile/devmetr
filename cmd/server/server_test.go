@@ -1,138 +1,130 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"os/signal"
+	"syscall"
 	"testing"
 
-	"github.com/developer-profile/devmetr/internal/server/handlers"
-	"github.com/developer-profile/devmetr/internal/server/repository"
-	"github.com/developer-profile/devmetr/internal/server/usecase"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/gorilla/mux"
+	"github.com/nikolaevs92/Practicum/internal/datastorage"
+	"github.com/nikolaevs92/Practicum/internal/server"
 )
 
-func TestRootPath(t *testing.T) {
-
-	repo := repository.NewRepoMem()
-	bl := usecase.NewMetricBusinessLogic(repo)
-	handlers := handlers.NewMetricHandler(bl, "127.0.0.1")
-
-	mux := mux.NewRouter()
-	mux.HandleFunc("/", handlers.GetAll).Methods("GET")
-
-	srv := httptest.NewServer(mux)
-	defer srv.Close()
-
-	res, err := http.Get(fmt.Sprintf("%s/", srv.URL))
-
-	assert.Nil(t, err, "Get error should be nil")
-	assert.Equal(t, http.StatusOK, res.StatusCode, "Status code should by 200")
-
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-
-	assert.Nil(t, err, "Read body error should be nil")
-	assert.Equal(t, "<html>\n<body>\n\t<h1>Metrics</h1>\n\t\n</body>\n</html>\n", string(body), "Check body")
-}
-
-func TestSetMetric(t *testing.T) {
-
-	repo := repository.NewRepoMem()
-	bl := usecase.NewMetricBusinessLogic(repo)
-	handlers := handlers.NewMetricHandler(bl, "127.0.0.1")
-
-	mux := mux.NewRouter()
-	mux.HandleFunc("/update/{mtype}/{name}/{value}", handlers.SetMetric).Methods("POST")
-
-	srv := httptest.NewServer(mux)
-	defer srv.Close()
-
+func TestStatHandler(t *testing.T) {
 	tests := []struct {
-		name       string
-		url        string
+		testName   string
+		urlPath    string
 		statusCode int
 	}{
-		{"Positive gauge metric", "/update/gauge/metricGauge/12", http.StatusOK},
-		{"Positive counter metric", "/update/counter/metricCounter/12", http.StatusOK},
-		{"Wrong metric type", "/update/wrong/metricGauge/12", http.StatusBadRequest},
+		{
+			testName:   "wrong_path_len",
+			urlPath:    "/update/asdd/",
+			statusCode: 404,
+		},
+		{
+			testName:   "wrong_path_len",
+			urlPath:    "/update/asd/asdasd//asd",
+			statusCode: 404,
+		},
+		{
+			testName:   "wrong_type",
+			urlPath:    "/update/guaaage/fds/235",
+			statusCode: 501,
+		},
+		{
+			testName:   "empty_metric_name",
+			urlPath:    "/update/gauge//343.000",
+			statusCode: 400,
+		},
+		{
+			testName:   "empty_value",
+			urlPath:    "/update/gauge/asd",
+			statusCode: 400,
+		},
+		{
+			testName:   "correct_guage",
+			urlPath:    "/update/gauge/asd/234.1",
+			statusCode: 200,
+		},
+		{
+			testName:   "correct_guage",
+			urlPath:    "/update/gauge/asd/-1234.1",
+			statusCode: 200,
+		},
+		{
+			testName:   "correct_guage",
+			urlPath:    "/update/gauge/aFFsd/0.001",
+			statusCode: 200,
+		},
+		{
+			testName:   "correct_guage",
+			urlPath:    "/update/gauge/as111d/1111",
+			statusCode: 200,
+		},
+		{
+			testName:   "correct_counter",
+			urlPath:    "/update/counter/as111d/1111",
+			statusCode: 200,
+		},
+		{
+			testName:   "correct_counter",
+			urlPath:    "/update/counter/a/1111111",
+			statusCode: 200,
+		},
+		{
+			testName:   "correct_counter",
+			urlPath:    "/update/counter/as1dD1d/0",
+			statusCode: 200,
+		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			url := fmt.Sprintf("%s%s", srv.URL, tt.url)
-			res, err := http.Post(url, "text/plain", nil)
-			if err != nil {
-				//Handle the error here.
-				return
-			}
-			defer res.Body.Close()
-			//Read and parse response body here
-			assert.Nil(t, err, "Get error should be nil")
-			assert.Equal(t, tt.statusCode, res.StatusCode, "Check status code")
-		})
+	cancelChan := make(chan os.Signal, 1)
+	signal.Notify(cancelChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+	ctx, cancel := context.WithCancel(context.Background())
 
+	go func() {
+		<-cancelChan
+		cancel()
+	}()
+
+	storage := datastorage.New()
+	storage.Init()
+	go storage.RunReciver(ctx)
+
+	r := server.MakeRouter(storage)
+	ts := httptest.NewServer(r)
+	defer ts.Close()
+
+	for _, tt := range tests {
+		t.Run(tt.testName, func(t *testing.T) {
+			resp, body := testRequest(t, ts, "POST", tt.urlPath)
+			defer resp.Body.Close()
+
+			if !assert.Equal(t, tt.statusCode, resp.StatusCode) {
+				fmt.Println(body)
+			}
+			assert.Equal(t, "text/plain; charset=utf-8", resp.Header.Get("Content-Type"))
+		})
 	}
 }
 
-func TestGetMetric(t *testing.T) {
+func testRequest(t *testing.T, ts *httptest.Server, method string, path string) (*http.Response, string) {
+	req, err := http.NewRequest(method, ts.URL+path, nil)
+	require.NoError(t, err)
 
-	repo := repository.NewRepoMem()
-	bl := usecase.NewMetricBusinessLogic(repo)
-	handlers := handlers.NewMetricHandler(bl, "127.0.0.1")
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
 
-	mux := mux.NewRouter()
-	mux.HandleFunc("/update/{mtype}/{name}/{value}", handlers.SetMetric).Methods("POST")
-	mux.HandleFunc("/value/{mtype}/{name}", handlers.GetMetric).Methods("GET")
+	respBody, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
 
-	srv := httptest.NewServer(mux)
-	defer srv.Close()
-
-	tests := []struct {
-		name       string
-		postURL    string
-		getURL     string
-		value      string
-		statusCode int
-	}{
-		{"Positive gauge metric", "/update/gauge/metricGauge/", "/value/gauge/metricGauge", "12", http.StatusOK},
-		{"Positive counter metric", "/update/counter/metricCounter/", "/value/counter/metricCounter", "12", http.StatusOK},
-		{"Negative counter metric", "", "/value/counter/NotExist", "\n", http.StatusNotFound},
-		{"Negative notExist type", "", "/value/NotExist/metricCounter", "\n", http.StatusNotFound},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.statusCode == http.StatusOK {
-				url := fmt.Sprintf("%s%s%s", srv.URL, tt.postURL, tt.value)
-				res, err := http.Post(url, "text/plain", nil)
-				if err != nil {
-					//Handle the error here.
-					return
-				}
-				defer res.Body.Close()
-				require.Nil(t, err, "Get error should be nil")
-				require.Equal(t, tt.statusCode, res.StatusCode, "Check status code")
-			}
-			res, err := http.Get(fmt.Sprintf("%s%s", srv.URL, tt.getURL))
-			if err != nil {
-				//Handle the error here.
-				return
-			}
-			defer res.Body.Close()
-			//Read and parse response body here
-
-			assert.Nil(t, err, "Get error should be nil")
-			assert.Equal(t, tt.statusCode, res.StatusCode, "Check status code")
-			defer res.Body.Close()
-			body, err := ioutil.ReadAll(res.Body)
-			assert.Nil(t, err, "Read body error should be nil")
-			assert.Equal(t, tt.value, string(body), "Check body")
-		})
-
-	}
+	return resp, string(respBody)
 }
