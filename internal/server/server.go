@@ -26,6 +26,7 @@ type DataBase interface {
 	RunReciver(context.Context)
 	GetJSONUpdate([]byte) error
 	GetJSONValue([]byte) ([]byte, error)
+	Ping() bool
 }
 
 type gzipWriter struct {
@@ -70,7 +71,11 @@ func MakeHandlerJSONUpdate(data DataBase) http.HandlerFunc {
 		}
 		err = data.GetJSONUpdate(body)
 		if err != nil {
-			rw.WriteHeader(http.StatusNotFound)
+			if err.Error() == "wrong hash" {
+				rw.WriteHeader(http.StatusBadRequest)
+			} else {
+				rw.WriteHeader(http.StatusNotFound)
+			}
 		}
 		rw.Write(body)
 	}
@@ -86,7 +91,11 @@ func MakeHandlerJSONValue(data DataBase) http.HandlerFunc {
 		}
 		respBody, err := data.GetJSONValue(body)
 		if err != nil {
-			rw.WriteHeader(http.StatusNotFound)
+			if err.Error() == "wrong hash" {
+				rw.WriteHeader(http.StatusBadRequest)
+			} else {
+				rw.WriteHeader(http.StatusNotFound)
+			}
 		}
 		rw.Write(respBody)
 	}
@@ -207,6 +216,15 @@ func MakeRouter(dataStorage DataBase) chi.Router {
 	r.Use(gzipHandle)
 
 	r.Get("/", MakeGetHomeHandler(dataStorage))
+	r.Get("/ping", func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Set("content-type", "text/plain; charset=utf-8")
+		if dataStorage.Ping() {
+			rw.WriteHeader(http.StatusOK)
+		} else {
+			rw.WriteHeader(http.StatusInternalServerError)
+		}
+		rw.Write(nil)
+	})
 
 	r.Route("/value", func(r chi.Router) {
 		r.Get("/gauge/{metricName}", MakeHandleGaugeValue(dataStorage))
@@ -274,7 +292,11 @@ func (dataServer *DataServer) Init() {
 func New(config Config) *DataServer {
 	server := new(DataServer)
 	server.Server = config.Server
-	server.DataHolder = datastorage.New(config.StorageConfig)
+	if config.DataBaseDSN == "" {
+		server.DataHolder = datastorage.NewFileStorage(config.StorageConfig)
+	} else {
+		server.DataHolder = datastorage.NewSQLStorage(config.StorageConfig)
+	}
 	server.Init()
 	return server
 }

@@ -17,6 +17,7 @@ const (
 	DefaultStoreFile      = "/tmp/devops-metrics-db.json"
 	DefaultRestore        = true
 	DefaultServer         = "127.0.0.1:8080"
+	DefaultDataBaseDSN    = ""
 )
 
 const (
@@ -27,6 +28,8 @@ const (
 	envRestore        = "RESTORE"
 	envReportRetries  = "REPORT_RETRIES"
 	envServer         = "ADDRESS"
+	envKey            = "KEY"
+	envDataBaseDSN    = "DATABASE_DSN"
 )
 
 type Config struct {
