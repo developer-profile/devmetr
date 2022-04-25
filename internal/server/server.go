@@ -350,15 +350,15 @@ func (dataServer *DataServer) RunHTTPServer(end context.Context) {
 	log.Fatal(server.ListenAndServe())
 }
 
-func (dataServer *DataServer) Run(end context.Context) {
+func (dataServer *DataServer) Run(ctx context.Context) {
 	log.Println("Server Starting")
 	log.Println(dataServer.Config)
-	DataHolderEndCtx, DataHolderCancel := context.WithCancel(end)
+	DataHolderEndCtx, DataHolderCancel := context.WithCancel(ctx)
 	defer DataHolderCancel()
 	go dataServer.DataHolder.RunReciver(DataHolderEndCtx)
 
-	httpServerEndCtx, httpServerCancel := context.WithCancel(end)
+	httpServerEndCtx, httpServerCancel := context.WithCancel(ctx)
 	defer httpServerCancel()
 	go dataServer.RunHTTPServer(httpServerEndCtx)
-	<-end.Done()
+	<-ctx.Done()
 }

@@ -151,7 +151,7 @@ func NewFileStorage(cfg StorageConfig) *FileStorage {
 	return dataStorage
 }
 
-func (storage *FileStorage) RunReciver(end context.Context) {
+func (storage *FileStorage) RunReciver(ctx context.Context) {
 	log.Println("Start Reciver")
 	var storeTimer *time.Ticker
 	if storage.cfg.StoreInterval > 0 {
@@ -179,7 +179,7 @@ func (storage *FileStorage) RunReciver(end context.Context) {
 			request.Responce <- CollectedDataResponce{storage.Data.GaugeData, storage.Data.CounterData, true}
 		case t := <-storeTimer.C:
 			_ = storage.StoreData(t)
-		case <-end.Done():
+		case <-ctx.Done():
 			log.Println("End Reciver")
 			return
 		}
@@ -215,7 +215,8 @@ func (storage *FileStorage) GetUpdate(metricType string, metricName string, metr
 
 	success := <-responceChan
 	if !success {
-		return errors.New("DataStorage: GetUpdate: some error")
+		return errors.New(
+			"DataStorage: GetUpdate: metricType success false in responceChan")
 	}
 	if storage.cfg.Synchronized {
 		storage.StoreData(time.Now())

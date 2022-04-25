@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	log.Println("FINDME")
+	log.Println("Let the server show begin!")
 	adress := pflag.StringP("adress", "a", config.DefaultServer, "")
 	storeInterval := pflag.DurationP("strore-interval", "i", config.DefaultStoreInterval, "")
 	storeFile := pflag.StringP("store-file", "f", config.DefaultStoreFile, "")
@@ -43,5 +43,5 @@ func main() {
 	}()
 	dataServer.Run(ctx)
 
-	log.Println("Program end")
+	log.Println("the end of server show")
 }
