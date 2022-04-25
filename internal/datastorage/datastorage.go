@@ -151,7 +151,7 @@ func NewFileStorage(cfg StorageConfig) *FileStorage {
 	return dataStorage
 }
 
-func (storage *FileStorage) RunReciver(end context.Context) {
+func (storage *FileStorage) RunReciver(ctx context.Context) {
 	log.Println("Start Reciver")
 	var storeTimer *time.Ticker
 	if storage.cfg.StoreInterval > 0 {
@@ -179,7 +179,7 @@ func (storage *FileStorage) RunReciver(end context.Context) {
 			request.Responce <- CollectedDataResponce{storage.Data.GaugeData, storage.Data.CounterData, true}
 		case t := <-storeTimer.C:
 			_ = storage.StoreData(t)
-		case <-end.Done():
+		case <-ctx.Done():
 			log.Println("End Reciver")
 			return
 		}
@@ -215,7 +215,8 @@ func (storage *FileStorage) GetUpdate(metricType string, metricName string, metr
 
 	success := <-responceChan
 	if !success {
-		return errors.New("DataStorage: GetUpdate: some error")
+		return errors.New(
+			"DataStorage: GetUpdate: metricType success false in responceChan")
 	}
 	if storage.cfg.Synchronized {
 		storage.StoreData(time.Now())
@@ -226,23 +227,52 @@ func (storage *FileStorage) GetUpdate(metricType string, metricName string, metr
 
 func (storage *FileStorage) GetJSONUpdate(jsonDump []byte) error {
 	metrics := Metrics{}
+
+	log.Println(string(jsonDump))
 	if err := json.Unmarshal(jsonDump, &metrics); err != nil {
-		panic(err)
+		log.Println(err)
+		return err
 	}
+	log.Println("StartUpdate" + metrics.String())
 
 	metricsHash, _ := metrics.CalcHash(storage.cfg.Key)
 	if storage.cfg.Key != "" && metricsHash != metrics.Hash {
 		log.Println("Wrong hash, " + metricsHash + " " + metrics.Hash)
 		return errors.New("wrong hash")
 	}
+	log.Println("StartUpdate" + metrics.String())
 
 	return storage.GetUpdate(metrics.MType, metrics.ID, metrics.GetStrValue())
+}
+
+func (storage *FileStorage) GetJSONArray(jsonDump []byte) ([]byte, error) {
+	metricsArray := []Metrics{}
+
+	log.Println(string(jsonDump))
+	if err := json.Unmarshal(jsonDump, &metricsArray); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	for _, el := range metricsArray {
+		metricsHash, _ := el.CalcHash(storage.cfg.Key)
+		if storage.cfg.Key != "" && metricsHash != el.Hash {
+			log.Println("Wrong hash, " + metricsHash + " " + el.Hash)
+			return nil, errors.New("wrong hash")
+		}
+	}
+
+	for _, el := range metricsArray {
+		_ = storage.GetUpdate(el.MType, el.ID, el.GetStrValue())
+	}
+	return metricsArray[0].MarshalJSON()
 }
 
 func (storage *FileStorage) GetJSONValue(jsonDump []byte) ([]byte, error) {
 	metrics := Metrics{}
 	if err := json.Unmarshal(jsonDump, &metrics); err != nil {
-		panic(err)
+		log.Println(err)
+		return jsonDump, err
 	}
 
 	switch metrics.MType {

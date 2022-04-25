@@ -14,6 +14,7 @@ import (
 )
 
 func main() {
+	log.Println("Let the agent show begin!")
 	cancelChan := make(chan os.Signal, 1)
 	signal.Notify(cancelChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -36,5 +37,5 @@ func main() {
 	collector := agent.New(*conf)
 	collector.Run(ctx)
 
-	log.Println("Program end")
+	log.Println("the end of agent show")
 }
